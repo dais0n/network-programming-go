@@ -82,7 +82,7 @@ func printPacketInfo(l3 *layers.IPv4, l4 *layers.TCP, proto string) {
 			}
 			fmt.Print("| ")
 			for k := i - i%WIDTH; k < i+1; k++ {
-				if isASCII(payload[k]) {
+				if isASCIIAlphabetic(payload[k]) {
 					fmt.Print(string(payload[k]))
 				} else {
 					fmt.Print(".")
@@ -123,7 +123,7 @@ func udp_handler(ipv4Packet *layers.IPv4) {
 	//printPacketInfo(ipv4Packet, udpPacket, "TCP")
 }
 
-func isASCII(s byte) bool {
+func isASCIIAlphabetic(s byte) bool {
 	if 65 <= s && s <= 90 {
 		return true
 	}
