@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/dais0n/network-programming-go/packet-capture/packets"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
@@ -62,17 +63,17 @@ func main() {
 	}
 }
 
-func printPacketInfo(l3 *layers.IPv4, l4 *layers.TCP, proto string) {
+func printPacketInfo(l3 *layers.IPv4, l4 packets.GettableEndPoints, proto string) {
 	fmt.Printf(
 		"Captured a %s packet from %s|%s to %s|%s\n",
 		proto,
 		l3.SrcIP,
-		l4.SrcPort,
+		l4.GetSource(),
 		l3.DstIP,
-		l4.DstPort,
+		l4.GetDistination(),
 	)
 
-	payload := l4.Payload
+	payload := l4.GetPayload()
 
 	for i := 0; i < len(payload); i++ {
 		fmt.Printf("%02X ", payload[i])
@@ -113,14 +114,20 @@ func tcp_handler(ipv4Packet *layers.IPv4) {
 	packet := gopacket.NewPacket(ipv4Packet.Payload, layers.LayerTypeTCP, gopacket.Default)
 	tcpLayer := packet.Layer(layers.LayerTypeTCP)
 	tcpPacket, _ := tcpLayer.(*layers.TCP)
-	printPacketInfo(ipv4Packet, tcpPacket, "TCP")
+	gettableEndpoint := &packets.GettableEndPointsTCP{
+		TCP: tcpPacket,
+	}
+	printPacketInfo(ipv4Packet, gettableEndpoint, "TCP")
 }
 
 func udp_handler(ipv4Packet *layers.IPv4) {
-	// packet := gopacket.NewPacket(ipv4Packet.Payload, layers.LayerTypeUDP, gopacket.Default)
-	// udpLayer := packet.Layer(layers.LayerTypeUDP)
-	// udpPacket, _ := udpLayer.(*layers.UDP)
-	//printPacketInfo(ipv4Packet, udpPacket, "TCP")
+	packet := gopacket.NewPacket(ipv4Packet.Payload, layers.LayerTypeUDP, gopacket.Default)
+	udpLayer := packet.Layer(layers.LayerTypeUDP)
+	udpPacket, _ := udpLayer.(*layers.UDP)
+	gettableEndpoint := &packets.GettableEndPointsUDP{
+		UDP: udpPacket,
+	}
+	printPacketInfo(ipv4Packet, gettableEndpoint, "UDP")
 }
 
 func isASCIIAlphabetic(s byte) bool {
